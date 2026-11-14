@@ -2,6 +2,7 @@ using Orders.Domain;
 using V1 = Orders.V1_Exceptions;
 using V2 = Orders.V2_Result;
 using V3 = Orders.V3_Unions;
+using V3b = Orders.V3b_UnionAttribute;
 
 namespace Orders.Tests;
 
@@ -41,4 +42,25 @@ public class OrderServiceTests
         Assert.IsType<V3.OutOfStock>(s.PlaceOrder(new("alice", "LAPTOP", 5)).Value);
         Assert.IsType<V3.CreditLimitExceeded>(s.PlaceOrder(new("carol", "LAPTOP", 1)).Value);
     }
+    [Fact]
+    public void V3b_UnionAttribute_HappyPath_And_Failures()
+    {
+        var s = new V3b.OrderService(Store);
+        Assert.Equal(40m, Assert.IsType<OrderConfirmation>(s.PlaceOrder(new("alice", "BOOK", 2)).Value).Total);
+        Assert.IsType<V3.InvalidQuantity>(s.PlaceOrder(new("alice", "BOOK", 0)).Value);
+        Assert.IsType<V3.CustomerBlocked>(s.PlaceOrder(new("bob", "BOOK", 1)).Value);
+        Assert.IsType<V3.OutOfStock>(s.PlaceOrder(new("alice", "LAPTOP", 5)).Value);
+        Assert.IsType<V3.CreditLimitExceeded>(s.PlaceOrder(new("carol", "LAPTOP", 1)).Value);
+    }
+
+    [Fact]
+    public void Union_Shapes()
+    {
+        // Documents how each form is laid out by the compiler (printed by the article).
+        var kw = typeof(V3.PlaceOrderResult);
+        var at = typeof(V3b.PlaceOrderResult);
+        Assert.True(at.IsValueType);
+        Assert.NotNull(kw);
+    }
 }
+

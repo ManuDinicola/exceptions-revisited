@@ -7,6 +7,7 @@ using Orders.Domain;
 using V1 = Orders.V1_Exceptions;
 using V2 = Orders.V2_Result;
 using V3 = Orders.V3_Unions;
+using V3b = Orders.V3b_UnionAttribute;
 
 // BenchmarkDotNet 0.15.x does not know net11.0 yet, so run in-process (no auto-generated project).
 var config = DefaultConfig.Instance
@@ -21,6 +22,7 @@ public class OrderBenchmarks
     private V1.OrderService _v1 = null!;
     private V2.OrderService _v2 = null!;
     private V3.OrderService _v3 = null!;
+    private V3b.OrderService _v3b = null!;
 
     private static readonly PlaceOrderRequest Good = new("alice", "BOOK", 2);
     private static readonly PlaceOrderRequest Blocked = new("bob", "BOOK", 1);
@@ -28,13 +30,14 @@ public class OrderBenchmarks
     [GlobalSetup]
     public void Setup()
     {
-        _v1 = new(_store); _v2 = new(_store); _v3 = new(_store);
+        _v1 = new(_store); _v2 = new(_store); _v3 = new(_store); _v3b = new(_store);
     }
 
     // ---- success path: all three should be equivalent ----
     [Benchmark] public object Exceptions_Success() => _v1.PlaceOrder(Good);
     [Benchmark] public object Result_Success() => _v2.PlaceOrder(Good);
     [Benchmark] public object Union_Success() => _v3.PlaceOrder(Good);
+    [Benchmark] public object UnionAttr_Success() => _v3b.PlaceOrder(Good);
 
     // ---- failure path: where exceptions hurt ----
     [Benchmark]
@@ -46,5 +49,7 @@ public class OrderBenchmarks
 
     [Benchmark] public bool Result_Failure() => _v2.PlaceOrder(Blocked).IsSuccess;
     [Benchmark] public bool Union_Failure() => _v3.PlaceOrder(Blocked).Value is OrderConfirmation;
+    [Benchmark] public bool UnionAttr_Failure() => _v3b.PlaceOrder(Blocked).Value is OrderConfirmation;
 }
+
 

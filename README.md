@@ -8,7 +8,8 @@ The same use case (`PlaceOrder`) is implemented three ways, with identical busin
 |---|---|---|
 | `Orders/V1_Exceptions` | `throw` / `catch` | invisible in the signature |
 | `Orders/V2_Result` | hand-rolled `Result<T>` + open `Error` hierarchy | visible, but the set of errors is open |
-| `Orders/V3_Unions` | C# 15 `union` | visible **and** closed: the compiler checks exhaustiveness |
+| `Orders/V3_Unions` | C# 15 `union` keyword | visible **and** closed: the compiler checks exhaustiveness |
+| `Orders/V3b_UnionAttribute` | hand-written `[Union]` struct | same as V3: it is what the keyword generates, written by hand |
 
 ## Run it
 
@@ -16,7 +17,7 @@ Requires the .NET 11 SDK (tested with `11.0.100-rc.2`). Unions are still behind 
 
 ```bash
 dotnet run  --project Orders.Demo                 # same 6 requests through all 3 versions
-dotnet test Orders.Tests                          # 3 tests
+dotnet test Orders.Tests                          # 5 tests
 dotnet run  --project Orders.Benchmarks -c Release
 ```
 

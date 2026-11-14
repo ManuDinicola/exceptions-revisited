@@ -11,9 +11,11 @@ LaunchCount=1  WarmupCount=3
 ```
 | Method             | Mean        | Error      | StdDev    | Gen0   | Allocated |
 |------------------- |------------:|-----------:|----------:|-------:|----------:|
-| Exceptions_Success |    87.92 ns |  64.117 ns |  3.514 ns | 0.0043 |      72 B |
-| Result_Success     |    96.21 ns |  16.610 ns |  0.910 ns | 0.0062 |     104 B |
-| Union_Success      |    93.00 ns |  19.770 ns |  1.084 ns | 0.0057 |      96 B |
-| Exceptions_Failure | 1,530.12 ns | 293.398 ns | 16.082 ns | 0.0229 |     384 B |
-| Result_Failure     |    30.10 ns |  21.503 ns |  1.179 ns | 0.0057 |      96 B |
-| Union_Failure      |    18.45 ns |   5.695 ns |  0.312 ns | 0.0014 |      24 B |
+| Exceptions_Success |    85.43 ns |   1.048 ns |  0.057 ns | 0.0043 |      72 B |
+| Result_Success     |    95.60 ns |  17.118 ns |  0.938 ns | 0.0062 |     104 B |
+| Union_Success      |    86.98 ns |  21.330 ns |  1.169 ns | 0.0057 |      96 B |
+| UnionAttr_Success  |    87.38 ns |   4.677 ns |  0.256 ns | 0.0057 |      96 B |
+| Exceptions_Failure | 1,542.27 ns | 910.723 ns | 49.920 ns | 0.0229 |     384 B |
+| Result_Failure     |    33.17 ns |   3.744 ns |  0.205 ns | 0.0057 |      96 B |
+| Union_Failure      |    19.93 ns |  11.201 ns |  0.614 ns | 0.0014 |      24 B |
+| UnionAttr_Failure  |    19.55 ns |   2.502 ns |  0.137 ns | 0.0014 |      24 B |
