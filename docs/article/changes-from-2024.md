@@ -1,37 +1,40 @@
 # 2024 → 2026: what changed between the two articles
 
-Section-by-section comparison of
+How the content of
 [Exception Handling in C#](https://medium.com/@manu.dinicola/exception-handling-in-c-5f612fc52195)
-(December 2024, .NET 8) and [the revisit](article.md) (November 2026, .NET 11 / C# 15).
+(December 2024, .NET 8) maps to [the new article](article.md) (November 2026, .NET 11 / C# 15).
+
+The new article does **not** follow the 2024 outline. The 2024 article was a reference guide,
+organised by language feature. The new one is a story that runs from a concrete bug to its fix,
+so readers have a reason to keep going. Topics from 2024 survive where they serve that story; the
+corrections are grouped into one section, "What I got wrong in 2024".
 
 Legend: **Kept** = still valid · **Updated** = right idea, better code · **Fixed** = was wrong ·
 **Removed** = obsolete · **New** = did not exist in 2024.
 
-| 2024 section | Status | What changed in 2026 | Verified by |
-|---|---|---|---|
-| Intro | Updated | Adds the three changes: .NET 9 exception handling rewrite, ASP.NET Core 10 logging fix, C# 15 unions. | — |
-| §1 What is an exception | Updated | Reframed as **expected outcomes vs unexpected failures**. This is now the thesis of the article. | — |
-| §2 "Managed vs unhandled" | **Fixed** | Every C# exception is managed; the terms were misleading. Replaced by expected/unexpected. | — |
-| §3 try/catch/finally | Updated | `catch (Exception)` template replaced by specific catch + `when` filter + `throw;` + wrapping with inner exception. | Snippet compiled |
-| §4.1 Input validation | Updated | Hand-written `if` replaced by `ArgumentNullException.ThrowIfNull` & co., plus the distinction between programming errors (throw) and user input (return). | Snippet compiled |
-| §4.2 TryParse | Kept | Generalised to the `Try` pattern, and its limit (yes/no, no *why*) leads into §6. | — |
-| §5.1 `UseExceptionHandler` lambda | **Removed** | Returned **400** for crashes (should be 500) and echoed `Message`. | — |
-| §5.2 Custom middleware | **Removed / Fixed** | Sent `Message` + **`StackTrace`** to clients. Also used the pre-.NET 6 `UseRouting`/`UseEndpoints` style. | — |
-| §5.3 `IExceptionHandler` | **Fixed** | Still the recommended approach, but no longer copies **request headers** (tokens, cookies) into responses; details only in `Development`; source-generated logging. | `OrderApiTests`: 500 + `application/problem+json`, no secret, no exception type in body |
-| §5 Suppressing middleware logs | **Removed** | Unnecessary since ASP.NET Core 10: diagnostics are suppressed when an `IExceptionHandler` handles the exception (`SuppressDiagnosticsCallback`). | Ref-pack XML docs + test log: one error entry |
-| §6 Result objects | Updated | `string? Error` → typed `Error` records. Shows why an open hierarchy still forces a discard arm that hides cases. Documents the `default(Result<T>)` trap. | `OrderServiceTests`, `DefaultResult_IsNotASuccess` |
-| — | **New** | §6 the 400-vs-402 bug: identical in exceptions and `Result`, impossible with unions. | Demo + `EveryOutcome_MapsToItsOwnStatus` |
-| — | **New** | §6.2 C# 15 `union`, switch expression, CS8509 as an error. | Build fails when an arm is removed |
-| — | **New** | §6.3 hand-written `[Union]` / `IUnion` equivalent. | `UnionShapeTests` |
-| — | **New** | §7 union pitfalls: switch statements are not checked; `default` throws `SwitchExpressionException`; don't model infrastructure failures as cases. | Compiled and ran on SDK 11.0.100 |
-| §7 Custom exceptions | Updated | Same three constructors, plus `sealed`, no serialization constructor (SYSLIB0051), data exposed as properties. | Snippet compiled |
-| §8 Best practices | Kept | Plus: "a custom exception for a business rule is a union case waiting to happen". | — |
-| §9 Limit exceptions | Updated | Performance is now the secondary argument; the primary one is that signatures should be honest. | — |
-| §9 Benchmark | **Fixed** | Mixed success and failure in one loop; class-based `Result` allocated on both paths; Windows-only `EtwProfiler`; results only as an image. Now: separate categories, baseline ratios, out-of-process BDN 0.16, .NET 8 vs .NET 11 by stack depth, raw reports committed. | `docs/benchmarks/` |
-| — | **New** | §10 decision guide. | — |
+| 2024 topic | Status | Where it lives now | What changed | Verified by |
+|---|---|---|---|---|
+| What is an exception | Updated | *Exceptions aren't dead. They're specialised.* | Reframed as expected outcomes vs unexpected failures: the thesis of the article. | — |
+| "Managed vs unhandled" | **Fixed** | *What I got wrong in 2024* | Every C# exception is managed; the terms were misleading. | — |
+| try/catch/finally | Updated | *Exceptions aren't dead* | `catch (Exception)` template replaced by specific catch + `when` filter + `throw;` + wrapping. | Snippet compiled |
+| Input validation | Updated | *Exceptions aren't dead* | Built-in guard clauses (`ThrowIfNull` & co.); programming error (throw) vs user input (return). | Snippet compiled |
+| TryParse | Kept | *The cheat sheet* | The Try pattern, for "found / not found". | — |
+| `UseExceptionHandler` lambda | **Removed** | *What I got wrong in 2024* | Returned **400** for crashes and echoed `Message`. | — |
+| Custom middleware | **Removed** | *What I got wrong in 2024* | Sent `Message` + **`StackTrace`** to clients; pre-.NET 6 routing style. | — |
+| `IExceptionHandler` | **Fixed** | *One place for the unexpected* | No longer copies request headers (tokens, cookies) into responses; details only in Development; source-generated logging. | `OrderApiTests` |
+| Suppressing middleware logs | **Removed** | *One place for the unexpected* | Unnecessary since ASP.NET Core 10 (`SuppressDiagnosticsCallback`). | Ref-pack docs + test log: one entry |
+| Result objects | Updated | *The fix I recommended in 2024, and why it isn't enough* | `string? Error` → typed records; shows the discard arm that hides cases. | `OrderServiceTests` |
+| Custom exceptions | Updated | *Exceptions aren't dead* | `sealed`, data as properties, no serialization constructor (SYSLIB0051). | Snippet compiled |
+| Best practices | Kept | *Exceptions aren't dead* | Plus "a business-rule exception is a union case waiting to happen". | — |
+| "Limit exceptions, they're slow" | Updated | *What I got wrong* + *The numbers* | Still true, now the secondary argument. | — |
+| Benchmark | **Fixed** | *The numbers* | Separate success/failure, baselines, out-of-process BDN 0.16, .NET 8 vs .NET 11 by depth. | `docs/benchmarks/` |
+| — | **New** | *A valid order, a wrong answer* | Opens on the 400-instead-of-402 bug. | Demo + API tests |
+| — | **New** | *C# 15 unions* | `union`, switch expression, CS8509 as an error, `[Union]` lowering. | Build fails when an arm is removed; `UnionShapeTests` |
+| — | **New** | *Three traps* | Switch statements aren't checked; `default`; don't model infrastructure failures. | Compiled and ran on SDK 11.0.100 |
+| — | **New** | *The cheat sheet*, *Try it yourself* | Decision tree; hands-on call to action. | — |
 
 ## Corrections to the October 2026 union types article
 
 - "Compile-Time Exhaustiveness" uses a `switch` **statement**: statements are not checked.
-  Use a switch expression, or note the difference.
-- §5 (null) could mention that `default(union)` matches no case.
+  The new article says so openly (*Three traps*), which also works as a hook to the older post.
+- Its null section could mention that `default(union)` matches no case.

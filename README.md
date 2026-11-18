@@ -2,10 +2,10 @@
 
 ![Your C# Methods Are Lying About What They Return](docs/images/cover.png)
 
-Companion repo for **[Exception Handling in C#, Revisited for .NET 11](docs/article/article.md)**
-(*Your methods are lying about what they return*). It updates the 2024 article
-[Exception handling in C#](https://medium.com/@manu.dinicola/exception-handling-in-c-5f612fc52195),
-written for .NET 8. See [what changed since 2024](docs/article/changes-from-2024.md).
+Companion repo for the article **[Your C# Methods Are Lying About What They Return](docs/article/article.md)**:
+exception handling revisited for .NET 11 and C# 15 unions. It follows up on the 2024 (.NET 8) article
+[Exception handling in C#](https://medium.com/@manu.dinicola/exception-handling-in-c-5f612fc52195);
+see [what changed since 2024](docs/article/changes-from-2024.md).
 
 One use case (`PlaceOrder`), the same business rules, implemented four ways on **.NET 11 / C# 15**:
 
@@ -36,7 +36,7 @@ One use case (`PlaceOrder`), the same business rules, implemented four ways on *
 │   ├── Orders.Benchmarks/           PlaceOrder four ways (BenchmarkDotNet 0.16)
 │   └── Exceptions.Runtimes/         throw vs return by stack depth, .NET 8 vs .NET 11
 ├── docs/
-│   ├── article/                     the article, plus the 2024 → 2026 comparison and technical review
+│   ├── article/                     the article, 2024 → 2026 comparison, technical review, publishing kit
 │   ├── images/                      figures used by the article
 │   └── benchmarks/                  raw BenchmarkDotNet reports, one file per run
 ├── Directory.Build.props            net11.0, C# 15, nullable, warnings as errors (incl. CS8509)
