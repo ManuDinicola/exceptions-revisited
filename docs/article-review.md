@@ -70,11 +70,42 @@ running the code, not by reading it.
   They went from 5 facts to 30 cases, and now cover all six failure rules (`UnknownProduct` was untested).
 - CI workflow: build, test and demo on every push.
 
-## 5. To do before publishing
+## 5. Review of the published articles the revisit builds on
+
+Source: the author's Medium RSS feed. The article page itself sits behind a bot challenge.
+
+### 5.1 "Exception Handling in C#" (Dec 2024): what the revisit should correct or supersede
+
+| § | Original statement | Issue | Suggested revisit wording |
+|---|---|---|---|
+| 2 | "Managed exceptions" vs "unhandled exceptions" | In .NET, *managed exception* means a CLR exception as opposed to a native one; every C# exception is managed. The real distinction is **expected** (part of the contract) vs **unexpected** (a bug or environment failure). | Use *expected outcome* vs *exceptional failure*. That split is the whole thesis of the revisit: expected → union case, unexceptional → `throw`. |
+| 3 | `catch (Exception ex)` as the template | Teaches the catch-all that the revisit later shows hiding cases. Missing: `throw;` vs `throw ex;` (stack trace loss), exception filters (`catch (X e) when (...)`), `ExceptionDispatchInfo`. | Show a specific catch first; mention `throw;` and `when` in one paragraph. |
+| 5.1 | `UseExceptionHandler` writes `StatusCode = 400` and `exception.Error.Message` | An unhandled exception is a server fault (**500**), not a client error. Echoing `Message` can leak internals. | 500 + ProblemDetails, no raw message. |
+| 5.2 | Custom middleware returns `Title = exception.Message`, `Detail = exception.StackTrace` | **Information disclosure** in production (stack traces, paths, SQL fragments). Also `UseRouting` / `UseEndpoints` is pre-.NET 6 style. | Remove `StackTrace`; use `app.MapControllers()`. Better: drop 5.2 and point to 5.3. |
+| 5.3 | Dev/QA/ACC responses include **all request headers** | Headers carry `Authorization` and `Cookie`, so tokens end up in response bodies and logs on shared QA environments. | Include `exception.ToString()` only in `Development`; never echo headers. |
+| 5.3 | Suppress `ExceptionHandlerMiddleware` logs through config/Serilog | Since ASP.NET Core 10, the middleware no longer emits its diagnostics when `TryHandleAsync` returns `true` (configurable with `ExceptionHandlerOptions.SuppressDiagnosticsCallback`). The workaround is now unnecessary. *Check the exact behaviour in the .NET 10 breaking-changes list before citing it.* | One sentence: "On .NET 10+, handled exceptions are no longer double-logged." |
+| 6 | `Result<T>` with `string? Error`, class-based | Stringly-typed error, and a class allocates on success too. The revisit's V2 (typed `Error` records) is already the better version; say so explicitly, as the bridge between the two articles. | "In 2024 I used a string; here's why that wasn't enough." |
+| 7.2 | Custom exception with the three standard constructors | Fine. Mark it `sealed` and note that the `[Serializable]` / serialization constructor is obsolete (SYSLIB0051) since .NET 8. | |
+| 9 | Benchmark: 1,000-iteration loop, half failing, `catch { }`, `EtwProfiler`, `ThreadingDiagnoser` | Mixes the success and failure paths in one number. The `Result` class allocates on both paths. `EtwProfiler` is Windows-only and `ThreadingDiagnoser` measures nothing relevant. The results are an embedded image with no numbers in the text. | The revisit fixes all of this. Say so: separate success/failure categories, baseline ratios, out-of-process, raw report in the repo. |
+| 9 | "Exceptions … are performance-intensive" | Still true, but .NET 9 rewrote managed exception handling (ported from NativeAOT), making throw/catch roughly 2 to 4x faster than .NET 8. The gap shrank and is still ~50 to 100x here. | Mention that the gap narrowed and is still decisive on hot failure paths. |
+
+### 5.2 "Why Union Types Might Be the Most Important C# 15 Feature" (Oct 2026)
+
+- **Exhaustiveness is checked for switch *expressions*, not switch *statements*.** Verified on
+  SDK 11.0.100: a `switch` statement over `PlaceOrderResult` handling 2 of 7 cases compiles with
+  **no diagnostic**, while the equivalent switch expression reports `CS8509`. The "Compile-Time
+  Exhaustiveness" section and `MakePetSpeak` use switch statements, so the claim "the compiler can
+  detect it" does not hold as written. Either switch to expressions, or note the difference. This
+  matters for the revisit too: the demo deliberately uses switch expressions.
+- "No default case is required" is true for both forms. Only the expression form *proves* it.
+- Section 5 (null): add the `default(union)` caveat from §3 above.
+
+## 6. To do before publishing
 
 - [ ] Re-run `dotnet run -c Release --project benchmarks/Orders.Benchmarks` (full job, not `--job short`)
       on the reference machine and replace the README table plus `docs/images/benchmark.png`.
       The PNG still shows the old 1,542 / 33 / 20 ns figures.
-- [ ] Update article prose for items 1 to 5 in section 2.
+- [ ] Update article prose for items 1 to 5 in section 2, and decide which §5.1 corrections the revisit should mention explicitly.
+- [ ] Fix the switch-statement exhaustiveness claim in the union types article (§5.2).
 - [ ] Update `namespace` / `using` lines in article snippets (section 4).
 - [ ] When BenchmarkDotNet 0.16.0 ships stable, bump `Directory.Packages.props`.
