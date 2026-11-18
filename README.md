@@ -2,8 +2,10 @@
 
 ![Your C# Methods Are Lying About What They Return](docs/images/cover.png)
 
-Companion repo for the article **"Your C# Methods Are Lying About What They Return"**, a revisit of
-[Exception handling in C#](https://medium.com/@manu.dinicola/exception-handling-in-c-5f612fc52195).
+Companion repo for **[Exception Handling in C#, Revisited for .NET 11](docs/article/article.md)**
+(*Your methods are lying about what they return*). It updates the 2024 article
+[Exception handling in C#](https://medium.com/@manu.dinicola/exception-handling-in-c-5f612fc52195),
+written for .NET 8. See [what changed since 2024](docs/article/changes-from-2024.md).
 
 One use case (`PlaceOrder`), the same business rules, implemented four ways on **.NET 11 / C# 15**:
 
@@ -24,10 +26,17 @@ One use case (`PlaceOrder`), the same business rules, implemented four ways on *
 │   ├── Results/                     V2  Errors.cs, Result.cs, OrderService.cs
 │   └── Unions/                      V3  Cases.cs, PlaceOrderResult.cs (union keyword), OrderService.cs
 │       └── Handwritten/             V3b PlaceOrderResult.cs ([Union] struct), OrderService.cs
-├── samples/Orders.Demo/             console app: same 6 requests through every version
-├── tests/Orders.Tests/              xUnit v3 on Microsoft.Testing.Platform
-├── benchmarks/Orders.Benchmarks/    BenchmarkDotNet 0.16
+├── samples/
+│   ├── Orders.Demo/                 console app: same 6 requests through every version
+│   └── Orders.Api/                  minimal API: union → HTTP status, IExceptionHandler + ProblemDetails
+├── tests/
+│   ├── Orders.Tests/                business rules + union shape (xUnit v3 on Microsoft.Testing.Platform)
+│   └── Orders.Api.Tests/            HTTP status per outcome, no leaks on 500
+├── benchmarks/
+│   ├── Orders.Benchmarks/           PlaceOrder four ways (BenchmarkDotNet 0.16)
+│   └── Exceptions.Runtimes/         throw vs return by stack depth, .NET 8 vs .NET 11
 ├── docs/
+│   ├── article/                     the article, plus the 2024 → 2026 comparison and technical review
 │   ├── images/                      figures used by the article
 │   └── benchmarks/                  raw BenchmarkDotNet reports, one file per run
 ├── Directory.Build.props            net11.0, C# 15, nullable, warnings as errors (incl. CS8509)
@@ -42,9 +51,13 @@ Unions ship in C# 15, the default language version for `net11.0`: no `LangVersio
 
 ```bash
 dotnet run   --project samples/Orders.Demo                         # same 6 requests through every version
-dotnet test                                                        # 30 tests
+dotnet run   --project samples/Orders.Api                          # POST /orders, GET /boom
+dotnet test                                                        # 38 tests
 dotnet run -c Release --project benchmarks/Orders.Benchmarks       # full run (a few minutes)
 dotnet run -c Release --project benchmarks/Orders.Benchmarks -- --job short   # quick look
+
+# .NET 8 vs .NET 11 (needs the .NET 8 runtime installed as well)
+dotnet run -c Release -f net11.0 --project benchmarks/Exceptions.Runtimes -- --runtimes net8.0 net11.0
 ```
 
 ## What the demo shows
@@ -74,19 +87,19 @@ Every benchmark calls `PlaceOrder` and answers one question, *did it succeed?*, 
 no row pays for boxing or string formatting that another one skips. Exceptions are the baseline of each
 category, which gives the `Ratio` column.
 
-BenchmarkDotNet 0.16.0-preview.2, .NET 11.0.0, out-of-process (default toolchain), `ShortRun`,
+BenchmarkDotNet 0.16.0-preview.2, .NET 11.0.0, out-of-process, default job,
 Linux cloud container (Intel Xeon 2.10 GHz, 4 cores):
 
 | Method | Category | Mean | Ratio | Allocated |
 |---|---|---:|---:|---:|
-| Exceptions | Success | 419.3 ns | 1.00 | 72 B |
-| Result | Success | 465.7 ns | 1.11 | 72 B |
-| Union (keyword) | Success | 431.3 ns | 1.03 | 72 B |
-| Union (`[Union]`) | Success | 407.0 ns | 0.97 | 72 B |
-| **Exceptions** | **Failure** | **2,031.0 ns** | **1.000** | **360 B** |
-| Result | Failure | 42.4 ns | 0.021 | 96 B |
-| Union (keyword) | Failure | 18.9 ns | 0.009 | 24 B |
-| Union (`[Union]`) | Failure | 18.0 ns | 0.009 | 24 B |
+| Exceptions | Success | 447.7 ns | 1.00 | 72 B |
+| Result | Success | 412.4 ns | 0.92 | 72 B |
+| Union (keyword) | Success | 419.7 ns | 0.94 | 72 B |
+| Union (`[Union]`) | Success | 416.4 ns | 0.93 | 72 B |
+| **Exceptions** | **Failure** | **1,860.3 ns** | **1.000** | **368 B** |
+| Result | Failure | 38.0 ns | 0.021 | 96 B |
+| Union (keyword) | Failure | 17.9 ns | 0.010 | 24 B |
+| Union (`[Union]`) | Failure | 19.2 ns | 0.010 | 24 B |
 
 How to read it:
 
@@ -99,6 +112,18 @@ How to read it:
 - The keyword and attribute union forms perform the same, as expected:
   `tests/Orders.Tests/UnionShapeTests.cs` checks that the keyword emits a `[Union]` struct implementing `IUnion`.
 
-Caveats: `ShortRun` (3 iterations) on a shared cloud VM, so treat the ratios as an order of magnitude,
-not the nanoseconds. The call stack is shallow (one frame between `throw` and `catch`), and exceptions
-get more expensive as the stack gets deeper. Raw reports are in [docs/benchmarks](docs/benchmarks).
+### .NET 8 vs .NET 11
+
+The cost of reporting one failure from N frames down (same code, both runtimes):
+
+| Depth | Throw .NET 8 | Throw .NET 11 | Speed-up | Return .NET 8 | Return .NET 11 |
+|---:|---:|---:|---:|---:|---:|
+| 1 | 9.07 µs | 1.75 µs | 5.2x | 2.9 ns | 3.4 ns |
+| 10 | 18.67 µs | 5.45 µs | 3.4x | 16.3 ns | 18.9 ns |
+| 50 | 57.00 µs | 22.56 µs | 2.5x | 378.2 ns | 405.6 ns |
+
+.NET 9's exception handling rewrite made throwing 2.5 to 5x cheaper. It is still two orders of
+magnitude more expensive than returning a value.
+
+Caveats: a shared cloud VM, so treat the ratios as an order of magnitude, not the nanoseconds.
+Raw reports are in [docs/benchmarks](docs/benchmarks).

@@ -8,6 +8,7 @@
   <ItemGroup>
     <!-- 0.16 is the first BenchmarkDotNet line that knows net11.0 (RuntimeMoniker.Net11_0). -->
     <PackageVersion Include="BenchmarkDotNet" Version="0.16.0-preview.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="11.0.0" />
     <PackageVersion Include="xunit.v3" Version="4.0.3" />
   </ItemGroup>
 

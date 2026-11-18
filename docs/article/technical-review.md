@@ -12,8 +12,8 @@ running the code, not by reading it.
 | Removing an arm is a compile error naming the case | ✅ | `CS8509 … the pattern 'Orders.Unions.CreditLimitExceeded' is not covered`. It is a *warning* by default; the repo promotes it. |
 | The keyword lowers to a `[Union]` struct implementing `IUnion` | ✅ | `UnionShapeTests` checks both forms: value type, `UnionAttribute`, `IUnion`, one constructor per case. |
 | V1/V2 answer 400 where V3 answers 402 | ✅ | Demo output unchanged; `docs/images/demo-output.png` is still accurate. |
-| Success path is equivalent across approaches | ✅ | Ratios 0.97 to 1.11, all within error. |
-| Throw/catch is much slower on failure | ✅ | ~2,031 ns vs 42 ns (`Result`) vs 19 ns (union), about 50x and 100x. |
+| Success path is equivalent across approaches | ✅ | Ratios 0.92 to 1.00 (default job), all within error. |
+| Throw/catch is much slower on failure | ✅ | 1,860 ns vs 38 ns (`Result`) vs 18 ns (union), about 49x and 100x (default job). .NET 8 → 11: throw is 2.5 to 5.2x faster, still ~two orders of magnitude above returning. |
 
 ## 2. Corrections to make in the article
 
