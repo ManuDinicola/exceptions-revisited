@@ -1,19 +1,21 @@
 using Orders.Domain;
-using V1 = Orders.V1_Exceptions;
-using V2 = Orders.V2_Result;
-using V3 = Orders.V3_Unions;
-using V3b = Orders.V3b_UnionAttribute;
+using V1 = Orders.Exceptions;
+using V2 = Orders.Results;
+using V3 = Orders.Unions;
+using V3b = Orders.Unions.Handwritten;
 
+// Runs the same six requests through every implementation and maps each outcome to an HTTP status,
+// the way an API endpoint would.
 var store = new Store();
-var requests = new PlaceOrderRequest[]
-{
-    new("alice", "BOOK", 2),
-    new("alice", "BOOK", 0),
-    new("bob",   "BOOK", 1),
-    new("alice", "LAPTOP", 5),
-    new("carol", "LAPTOP", 1),
-    new("zed",   "BOOK", 1),
-};
+PlaceOrderRequest[] requests =
+[
+    new("alice", "BOOK", 2),     // OK
+    new("alice", "BOOK", 0),     // invalid quantity
+    new("bob",   "BOOK", 1),     // customer blocked
+    new("alice", "LAPTOP", 5),   // out of stock
+    new("carol", "LAPTOP", 1),   // credit limit exceeded  <- the case V1 and V2 get wrong
+    new("zed",   "BOOK", 1),     // unknown customer
+];
 
 foreach (var r in requests)
 {
@@ -24,7 +26,7 @@ foreach (var r in requests)
     Console.WriteLine($"  V3b [Union]   : {CallV3b(r)}");
 }
 
-// V1: the caller must KNOW which exceptions exist. Forget one and it escapes as a 500.
+// V1: the caller must KNOW which exceptions exist. Nothing in the signature tells them.
 string CallV1(PlaceOrderRequest r)
 {
     try
@@ -45,10 +47,10 @@ string CallV2(PlaceOrderRequest r) =>
         {
             V2.CustomerBlocked => $"403 {err.Message}",
             V2.OutOfStock => $"409 {err.Message}",
-            _ => $"400 {err.Message}",                          // the discard arm hides new cases too
+            _ => $"400 {err.Message}",                             // the discard arm hides new cases too
         });
 
-// V3: closed set. No catch-all needed, and adding a case breaks the build here.
+// V3: closed set. No discard arm needed, and removing an arm (or adding a case) is error CS8509.
 string CallV3(PlaceOrderRequest r) =>
     new V3.OrderService(store).PlaceOrder(r) switch
     {

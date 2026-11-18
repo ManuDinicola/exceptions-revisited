@@ -1,22 +1,15 @@
 using Orders.Domain;
 
-namespace Orders.V1_Exceptions;
+namespace Orders.Exceptions;
 
-public abstract class OrderException(string message) : Exception(message);
-public sealed class InvalidQuantityException(int quantity) : OrderException($"Invalid quantity: {quantity}");
-public sealed class UnknownCustomerException(string id) : OrderException($"Unknown customer: {id}");
-public sealed class UnknownProductException(string sku) : OrderException($"Unknown product: {sku}");
-public sealed class CustomerBlockedException(string id) : OrderException($"Customer blocked: {id}");
-public sealed class OutOfStockException(string sku, int requested, int available)
-    : OrderException($"Out of stock: {sku} (requested {requested}, available {available})");
-public sealed class CreditLimitExceededException(decimal total, decimal limit)
-    : OrderException($"Credit limit exceeded: {total} > {limit}");
-
+/// <summary>V1: failures are thrown.</summary>
 public sealed class OrderService(Store store)
 {
     // The signature says "I return a confirmation". It does NOT say "I can throw six different things".
     public OrderConfirmation PlaceOrder(PlaceOrderRequest request)
     {
+        ArgumentNullException.ThrowIfNull(request);
+
         if (request.Quantity <= 0) throw new InvalidQuantityException(request.Quantity);
 
         var customer = store.FindCustomer(request.CustomerId)

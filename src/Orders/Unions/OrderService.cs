@@ -1,28 +1,14 @@
 using Orders.Domain;
 
-namespace Orders.V3_Unions;
+namespace Orders.Unions;
 
-public sealed record InvalidQuantity(int Quantity);
-public sealed record UnknownCustomer(string Id);
-public sealed record UnknownProduct(string Sku);
-public sealed record CustomerBlocked(string Id);
-public sealed record OutOfStock(string Sku, int Requested, int Available);
-public sealed record CreditLimitExceeded(decimal Total, decimal Limit);
-
-// C# 15: the return type lists EVERY possible outcome. Closed set, no base class, no guessing.
-public union PlaceOrderResult(
-    OrderConfirmation,
-    InvalidQuantity,
-    UnknownCustomer,
-    UnknownProduct,
-    CustomerBlocked,
-    OutOfStock,
-    CreditLimitExceeded);
-
+/// <summary>V3: failures are cases of a closed C# 15 <c>union</c>.</summary>
 public sealed class OrderService(Store store)
 {
     public PlaceOrderResult PlaceOrder(PlaceOrderRequest request)
     {
+        ArgumentNullException.ThrowIfNull(request);
+
         if (request.Quantity <= 0) return new InvalidQuantity(request.Quantity);
 
         var customer = store.FindCustomer(request.CustomerId);

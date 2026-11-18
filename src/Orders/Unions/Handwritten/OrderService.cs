@@ -1,29 +1,14 @@
-using System.Runtime.CompilerServices;
 using Orders.Domain;
-using Orders.V3_Unions;   // reuse the same case records as V3
 
-namespace Orders.V3b_UnionAttribute;
+namespace Orders.Unions.Handwritten;
 
-// The hand-written equivalent of: public union PlaceOrderResult(...);
-// One public constructor per case type, plus a Value property. The compiler does the rest.
-[Union]
-public readonly struct PlaceOrderResult : IUnion
-{
-    public PlaceOrderResult(OrderConfirmation value) => Value = value;
-    public PlaceOrderResult(InvalidQuantity value) => Value = value;
-    public PlaceOrderResult(UnknownCustomer value) => Value = value;
-    public PlaceOrderResult(UnknownProduct value) => Value = value;
-    public PlaceOrderResult(CustomerBlocked value) => Value = value;
-    public PlaceOrderResult(OutOfStock value) => Value = value;
-    public PlaceOrderResult(CreditLimitExceeded value) => Value = value;
-
-    public object? Value { get; }
-}
-
+/// <summary>V3b: same as V3, but returning the hand-written <see cref="PlaceOrderResult"/>.</summary>
 public sealed class OrderService(Store store)
 {
     public PlaceOrderResult PlaceOrder(PlaceOrderRequest request)
     {
+        ArgumentNullException.ThrowIfNull(request);
+
         if (request.Quantity <= 0) return new InvalidQuantity(request.Quantity);
 
         var customer = store.FindCustomer(request.CustomerId);

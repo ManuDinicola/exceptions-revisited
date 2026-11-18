@@ -1,3 +1,9 @@
+# Superseded: .NET 11 RC2, BenchmarkDotNet 0.15.8, in-process
+
+> Kept for history. These numbers were measured **in-process** (BenchmarkDotNet 0.15.8 did not know
+> `net11.0`), and the success-path methods returned `object`, so the `Allocated` column of the
+> `Result`/union rows includes boxing of the returned struct (+24 B / +32 B). Do not quote them.
+
 ```
 
 BenchmarkDotNet v0.15.8, Windows 11 (10.0.26300.9974)
