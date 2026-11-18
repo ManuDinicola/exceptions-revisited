@@ -1,0 +1,26 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{csproj,props,targets,slnx,json,yml,yaml}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.cs]
+csharp_style_namespace_declarations = file_scoped:warning
+dotnet_style_namespace_match_folder = true:warning
+
+# CA1716: `Error` clashes with a Visual Basic keyword. The name is the article's vocabulary; C#-only sample.
+dotnet_diagnostic.CA1716.severity = none
+
+# Underscores are idiomatic in test and benchmark method names (Method_Scenario_Outcome).
+[{tests,benchmarks}/**.cs]
+dotnet_diagnostic.CA1707.severity = none
