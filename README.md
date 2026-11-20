@@ -64,7 +64,7 @@ Unions ship in C# 15, the default language version for `net11.0`: no `LangVersio
 ```bash
 dotnet run   --project samples/Orders.Demo                         # same 6 requests through every version
 dotnet run   --project samples/Orders.Api                          # POST /orders, GET /boom
-dotnet test                                                        # 38 tests
+dotnet test                                                        # 39 tests
 dotnet run -c Release --project benchmarks/Orders.Benchmarks       # full run (a few minutes)
 dotnet run -c Release --project benchmarks/Orders.Benchmarks -- --job short   # quick look
 
