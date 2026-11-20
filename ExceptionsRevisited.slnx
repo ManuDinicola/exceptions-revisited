@@ -1,6 +1,23 @@
 <Solution>
-  <Project Path="Orders.Benchmarks/Orders.Benchmarks.csproj" />
-  <Project Path="Orders.Demo/Orders.Demo.csproj" />
-  <Project Path="Orders.Tests/Orders.Tests.csproj" />
-  <Project Path="Orders/Orders.csproj" />
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Orders/Orders.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/Orders.Api/Orders.Api.csproj" />
+    <Project Path="samples/Orders.Demo/Orders.Demo.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Orders.Api.Tests/Orders.Api.Tests.csproj" />
+    <Project Path="tests/Orders.Tests/Orders.Tests.csproj" />
+  </Folder>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/Exceptions.Runtimes/Exceptions.Runtimes.csproj" />
+    <Project Path="benchmarks/Orders.Benchmarks/Orders.Benchmarks.csproj" />
+  </Folder>
 </Solution>
