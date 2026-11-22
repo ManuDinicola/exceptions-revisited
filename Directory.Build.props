@@ -1,0 +1,19 @@
+<Project>
+
+  <!-- Shared by every project in the repo. -->
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <!-- C# 15 is the default for net11.0; pinned so the article's claims stay reproducible. -->
+    <LangVersion>15</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- CS8509: non-exhaustive switch expression. Already an error via TreatWarningsAsErrors;
+         listed explicitly because it is the whole point of the union version. -->
+    <WarningsAsErrors>$(WarningsAsErrors);CS8509</WarningsAsErrors>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+</Project>
